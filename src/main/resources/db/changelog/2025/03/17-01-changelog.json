@@ -1,0 +1,14 @@
+{
+  "databaseChangeLog": [
+    {
+      "changeSet": {
+        "id": "1742205050062-1",
+        "author": "quanpd (generated)",
+        "objectQuotingStrategy": "QUOTE_ONLY_RESERVED_WORDS",
+        "sqlFile": {
+          "path": "classpath:/db/changelog/2025/03/17-01-changelog.sql"
+        }
+      }
+    }
+  ]
+}
