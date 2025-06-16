@@ -21,7 +21,7 @@ public class RsaService {
   public String rsaEncrypt(String information) {
     try {
       ClassLoader classLoader = getClass().getClassLoader();
-      InputStream inputStream = classLoader.getResourceAsStream("moocPublicKey.rsa");
+      InputStream inputStream = classLoader.getResourceAsStream("poolPublicKey.rsa");
       if (inputStream == null) {
         throw new FileNotFoundException("Public key file not found in classpath");
       }
@@ -47,7 +47,7 @@ public class RsaService {
   public String rsaDecrypt(String decryptString) {
     try {
       ClassLoader classLoader = getClass().getClassLoader();
-      InputStream inputStream = classLoader.getResourceAsStream("moocPrivateKey.rsa");
+      InputStream inputStream = classLoader.getResourceAsStream("poolPrivateKey.rsa");
       if (inputStream == null) {
         throw new FileNotFoundException("Private key file not found in classpath");
       }
