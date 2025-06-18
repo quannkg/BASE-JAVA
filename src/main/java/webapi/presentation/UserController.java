@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import webapi.application.service.auth.dto.UpdateProfileRequest;
 import webapi.application.service.auth.interfaces.IUserService;
 import webapi.application.service.auth.dto.AuthUserprofileDto;
+import webapi.infrastructure.config.PermissionsAllowed;
 import webapi.infrastructure.factory.BaseResponse;
 import webapi.infrastructure.factory.ResponseFactory;
 
@@ -15,7 +16,9 @@ import webapi.infrastructure.factory.ResponseFactory;
 public class UserController {
     private final IUserService iUser;
 
+
     @GetMapping("{id}")
+    @PermissionsAllowed({"view.user_information"})
     public ResponseEntity<BaseResponse<AuthUserprofileDto>> getUserProfileById(@PathVariable Integer id) {
         return ResponseFactory.success(iUser.getUserProfileById(id));
     }

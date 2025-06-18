@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import webapi.application.service.permission.dto.request.AuthPermissionRequest;
 import webapi.domain.AuthPermission;
 
+import java.util.List;
+
 public interface AuthPermissionRepository extends JpaRepository<AuthPermission, Integer> {
     @Query(
             value =
@@ -20,4 +22,13 @@ public interface AuthPermissionRepository extends JpaRepository<AuthPermission, 
             countProjection = "ap.id")
     Page<AuthPermission> search(AuthPermissionRequest request, Pageable pageable);
 
+    @Query(
+            value =
+                    """
+              select ap.codename
+              from auth_permission ap
+              join auth_group_permissions agp on ap.id = agp.permission_id
+              where agp.group_id in :groupIds
+              """, nativeQuery = true)
+    List<String> findPermissionCodesInGroupIds(List<Integer> groupIds);
 }

@@ -10,17 +10,19 @@ import webapi.application.service.auth.dto.UpdateProfileRequest;
 import webapi.application.service.auth.interfaces.IUserService;
 import webapi.application.service.auth.dto.AuthUserprofileDto;
 import webapi.domain.AuthUser;
+import webapi.domain.AuthUserGroup;
 import webapi.domain.AuthUserUserPermission;
 import webapi.domain.AuthUserprofile;
 import webapi.infrastructure.exception.AppException;
 import webapi.infrastructure.helper.ModelMapperUtils;
+import webapi.infrastructure.helper.ModelTransformUtils;
 import webapi.infrastructure.helper.PasswordUtils;
-import webapi.infrastructure.repositories.AuthUserRepository;
-import webapi.infrastructure.repositories.AuthUserUserPermissionRepository;
-import webapi.infrastructure.repositories.AuthUserprofileRepository;
+import webapi.infrastructure.helper.UserUtils;
+import webapi.infrastructure.repositories.*;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,6 +33,8 @@ public class UserService implements IUserService {
     private final AuthUserRepository authUserRepository;
     private final AuthUserprofileRepository authUserprofileRepository;
     private final AuthUserUserPermissionRepository authUserUserPermissionRepository;
+    private final AuthPermissionRepository authPermissionRepository;
+    private final AuthUserGroupRepository authUserGroupRepository;
     private final PasswordUtils passwordUtils;
     @Value("${authentication.password.default}")
     private String PASSWORD_DEFAULT;
@@ -40,6 +44,11 @@ public class UserService implements IUserService {
         return authUserUserPermission.stream()
                 .map(permission -> permission.getPermission().getName())
                 .toList();
+    }
+    public List<String> getCurrentPermissionOfUser() {
+        List<AuthUserGroup> userGroups = authUserGroupRepository.findByUserId(UserUtils.getUserId());
+        List<Integer> groupIds = ModelTransformUtils.getAttribute(userGroups, x-> x.getGroup().getId());
+        return authPermissionRepository.findPermissionCodesInGroupIds(groupIds);
     }
 
     public AuthUser findUserById(Integer userId) {
