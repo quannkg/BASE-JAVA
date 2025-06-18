@@ -1,4 +1,4 @@
-package webapi.application.service.group.inteface;
+package webapi.application.service.group.interfaces;
 
 import webapi.application.service.group.dto.request.AuthGroupRequest;
 import webapi.application.service.group.dto.request.CreateOrUpdateAuthGroupRequest;

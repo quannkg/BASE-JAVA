@@ -9,7 +9,7 @@ import webapi.application.service.group.dto.request.AuthGroupRequest;
 import webapi.application.service.group.dto.request.CreateOrUpdateAuthGroupRequest;
 import webapi.application.service.group.dto.response.AuthGroupDto;
 import webapi.application.service.group.dto.response.AuthGroupResponse;
-import webapi.application.service.group.inteface.IAuthGroup;
+import webapi.application.service.group.interfaces.IAuthGroup;
 import webapi.domain.AuthGroup;
 import webapi.infrastructure.exception.AppException;
 import webapi.infrastructure.helper.ModelMapperUtils;
@@ -18,7 +18,6 @@ import webapi.infrastructure.repositories.AuthGroupRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
