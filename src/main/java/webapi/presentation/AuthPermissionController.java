@@ -30,12 +30,12 @@ public class AuthPermissionController {
         iAuthPermission.createAuthPermission(request);
         return ResponseFactory.success("Tạo mới quuyền thành công");
     }
-    @PostMapping("update/{id}")
+    @PutMapping("update/{id}")
     public ResponseEntity<BaseResponse<String>> update(@PathVariable Integer id, @RequestBody CreateOrUpdateAuthPermissionRequest request) {
         iAuthPermission.updateAuthPermission(id, request);
         return ResponseFactory.success("Chỉnh sửa quuyền thành công");
     }
-    @PostMapping("delete/{id}")
+    @DeleteMapping("delete/{id}")
     public ResponseEntity<BaseResponse<String>> delete(@PathVariable Integer id) {
         iAuthPermission.deleteAuthPermission(id);
         return ResponseFactory.success("Xóa quuyền thành công");

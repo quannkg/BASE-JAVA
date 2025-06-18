@@ -30,12 +30,12 @@ public class AuthGroupController {
         iAuthGroup.createAuthGroup(request);
         return ResponseFactory.success("Tạo mới vai trò thành công");
     }
-    @PostMapping("update/{id}")
+    @PutMapping("update/{id}")
     public ResponseEntity<BaseResponse<String>> update(@PathVariable Integer id, @RequestBody CreateOrUpdateAuthGroupRequest request) {
         iAuthGroup.updateAuthGroup(id, request);
         return ResponseFactory.success("Chỉnh sửa vai trò thành công");
     }
-    @PostMapping("delete/{id}")
+    @DeleteMapping("delete/{id}")
     public ResponseEntity<BaseResponse<String>> delete(@PathVariable Integer id) {
         iAuthGroup.deleteAuthGroup(id);
         return ResponseFactory.success("Xóa vai trò thành công");
