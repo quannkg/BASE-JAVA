@@ -2,12 +2,15 @@ package webapi.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Table(name = "auth_user_groups", schema = "poolmanagement")
 public class AuthUserGroup {
     @Id

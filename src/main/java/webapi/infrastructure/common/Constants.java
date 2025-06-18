@@ -27,21 +27,7 @@ public class Constants {
     public static final String IS_FIRST_LOGIN = "isFirstLogin";
   }
   public static class MoocPosition {
-    public static final String SV = "is_sv";
-    public static final String CAP_BO = "is_cap_bo";
-    public static final String QTCS = "is_qtcs";
-    public static final String GIANG_VIEN = "is_giang_vien";
-    public static final String QTHT = "is_qtht";
-    public static final String QTDH = "is_qtdh";
-    public static final String TO_CHUYEN_MON = "approve_course_content.update";
-
-    public static final List<String> ADMIN =
-            new ArrayList<>(Arrays.asList(QTCS, CAP_BO, GIANG_VIEN, QTHT, QTDH));
-
-    public static final List<String> SYSTEM_LEVEL_ADMINS =
-            List.of(QTHT);
-
-    public static final List<String> SYSTEM_ROLES = new ArrayList<>(Arrays.asList(QTCS, CAP_BO, GIANG_VIEN, QTHT, QTDH, SV));
-
+    public static final String USER = "is_user";
+    public static final String ADMIN = "is_admin";
   }
 }

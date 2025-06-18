@@ -21,7 +21,7 @@ import static org.springframework.core.io.buffer.DataBufferUtils.matcher;
 public class LoginRequest {
     private String username;
     private String password;
-    private String poolSource;
+    private String sourceFrom;
     @JsonIgnore
     public Boolean isEmail() {
         return this.username.contains("@");

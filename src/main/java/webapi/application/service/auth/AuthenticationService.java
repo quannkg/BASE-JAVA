@@ -56,7 +56,7 @@ public class AuthenticationService implements IAuthentication {
   public LoginResponse login(
           LoginRequest request, String userAgent, HttpServletResponse httpServletResponse)
           throws NoSuchAlgorithmException, InvalidKeySpecException, IllegalAccessException {
-    Optional<AuthUser> optionalAuthUser = getAuthUserByRequest(request, request.getPoolSource());
+    Optional<AuthUser> optionalAuthUser = getAuthUserByRequest(request, request.getSourceFrom());
     if (optionalAuthUser.isEmpty() || !optionalAuthUser.get().getIsActive()) {
       throw new LoginFailException(
               messageSource.getMessage("account_not_exist", null, Locale.getDefault()),
@@ -65,7 +65,7 @@ public class AuthenticationService implements IAuthentication {
 
     AuthUser authUser = optionalAuthUser.get();
     validLogin(request, authUser, 0);
-    validateUserPermissionToLogin(authUser, request.getPoolSource(), 0);
+    validateUserPermissionToLogin(authUser, request.getSourceFrom(), 0);
 
     request.setPassword(rsaService.rsaDecrypt(request.getPassword()));
 
@@ -81,7 +81,7 @@ public class AuthenticationService implements IAuthentication {
     processChangeToken(
             isFromMobile(userAgent) ? "MobileToken:%s" : "Token:%s", authUser, accessToken);
 
-    Boolean isNotifyToChangePassword = isNeedToNotification(authUser, null, request.getPoolSource());
+//    Boolean isNotifyToChangePassword = isNeedToNotification(authUser, null, request.getSourceFrom());
 
     setCookieForResponse(httpServletResponse, accessToken);
     return loginUserService.buildResponse(accessToken, refreshToken);
@@ -204,31 +204,18 @@ public class AuthenticationService implements IAuthentication {
   private void validateUserPermissionToLogin(
           AuthUser authUser, String source, Integer maxRetryCount) {
     List<String> userRoles = userService.getPermissionOfUsers(authUser.getId().intValue());
-    if (SV_SOURCE.equalsIgnoreCase(source)) {
-      if (userRoles.contains(Constants.MoocPosition.CAP_BO)
-              || userRoles.contains(Constants.MoocPosition.QTHT)
-              || userRoles.contains(Constants.MoocPosition.GIANG_VIEN)
-              || userRoles.contains(Constants.MoocPosition.QTCS)
-              || userRoles.contains(Constants.MoocPosition.QTDH)
-              || userRoles.contains("ROLE_USER")) {
-        throw new LoginFailException(
-                messageSource.getMessage(
-                        "you_dont_have_permission_to_access_this_site", null, Locale.getDefault()),
-                0, 0, maxRetryCount);
-      }
-    } else {
-      if (userRoles.isEmpty() || userRoles.contains(Constants.MoocPosition.SV)) {
-        throw new LoginFailException(
-                messageSource.getMessage(
-                        "you_dont_have_permission_to_access_this_site", null, Locale.getDefault()),
-                0, 0, maxRetryCount);
-      }
+        if (userRoles.contains(Constants.MoocPosition.ADMIN)
+            || userRoles.contains(Constants.MoocPosition.USER)) {
+      throw new LoginFailException(
+              messageSource.getMessage(
+                      "you_dont_have_permission_to_access_this_site", null, Locale.getDefault()),
+              0, 0, maxRetryCount);
     }
   }
 
   private Boolean isNeedToNotification(
           AuthUser authUser, Map<String, AccountConfigDTO> configMap, String moocSource) {
-    return false; // Reimplement if needed
+    return false;
   }
   private Map<String, Object> convertUsingReflection(Object object) throws IllegalAccessException {
     Map<String, Object> map = new HashMap<>();
