@@ -2,3 +2,6 @@ databaseChangeLog:
   - include:
       file: classpath:/db/changelog/2025/03/17-01-changelog.json
       relativeToChangelogFile: false
+  - include:
+      file: classpath:/db/changelog/2025/06/19-01-changelog.json
+      relativeToChangelogFile: false
