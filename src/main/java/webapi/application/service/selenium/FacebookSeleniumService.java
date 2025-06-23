@@ -3,17 +3,26 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.AllArgsConstructor;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.interactions.Actions;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import webapi.application.service.selenium.dto.request.FacebookCommentRequest;
+import webapi.application.service.selenium.dto.request.FacebookPostRequest;
+import webapi.application.service.selenium.dto.response.FacebookCommentDto;
+import webapi.application.service.selenium.dto.response.FacebookCommentResponse;
+import webapi.application.service.selenium.dto.response.FacebookPostDto;
+import webapi.application.service.selenium.dto.response.FacebookPostResponse;
 import webapi.application.service.selenium.interfaces.IFacebookCrawler;
 import webapi.domain.FacebookComment;
 import webapi.domain.FacebookPost;
+import webapi.infrastructure.exception.AppException;
+import webapi.infrastructure.helper.ModelMapperUtils;
 import webapi.infrastructure.repositories.FacebookCommentRepository;
 import webapi.infrastructure.repositories.FacebookPostRepository;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -21,6 +30,7 @@ import java.util.Set;
 public class FacebookSeleniumService implements IFacebookCrawler {
     private final FacebookPostRepository facebookPostRepository;
     private final FacebookCommentRepository facebookCommentRepository;
+    private final GeminiSentimentAnalyzerService geminiSentimentAnalyzerService;
 
     public void crawlPostContent(String postUrl) {
         WebDriverManager.chromedriver().setup();
@@ -78,6 +88,7 @@ public class FacebookSeleniumService implements IFacebookCrawler {
                         FacebookComment comment = new FacebookComment();
                         comment.setCommenterName(commenterName);
                         comment.setCommentText(commentText);
+                        geminiSentimentAnalyzerService.analyzeCommentFacebookSentiment(comment);
                         post.addComment(comment); // dùng method trong entity Post
 
                         seenComments.add(commentText); // loại trùng
@@ -99,6 +110,57 @@ public class FacebookSeleniumService implements IFacebookCrawler {
             driver.quit();
         }
     }
+
+    @Override
+    public FacebookPostResponse searchPosts(FacebookPostRequest request) {
+        Page<FacebookPost> entity =  facebookPostRepository.search(request, request.getPageable());
+        List<FacebookPostDto> data = ModelMapperUtils.mapList(entity.getContent().stream().filter(Objects::nonNull).toList(), FacebookPostDto.class);
+        return FacebookPostResponse.builder()
+                .data(data)
+                .count(entity.getNumberOfElements())
+                .total(entity.getTotalElements())
+                .build();
+    }
+
+
+    @Override
+    public FacebookPostDto getPostById(Long postId) {
+        FacebookPost facebookPost = facebookPostRepository.findById(postId)
+                .orElseThrow(() -> new AppException("Không tìm thấy quyền với id: " + postId, HttpStatus.NOT_FOUND));
+        return FacebookPostDto.builder()
+                .id(facebookPost.getId())
+                .content(facebookPost.getContent())
+                .postUrl(facebookPost.getPostUrl())
+                .imageUrl(facebookPost.getImageUrl())
+                .createdAt(facebookPost.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    public FacebookCommentResponse searchComments(FacebookCommentRequest request) {
+        Page<FacebookComment> entity =  facebookCommentRepository.search(request, request.getPageable());
+        List<FacebookCommentDto> data = ModelMapperUtils.mapList(entity.getContent().stream().filter(Objects::nonNull).toList(), FacebookCommentDto.class);
+        return FacebookCommentResponse.builder()
+                .data(data)
+                .count(entity.getNumberOfElements())
+                .total(entity.getTotalElements())
+                .build();
+    }
+
+    @Override
+    public FacebookCommentDto getCommentById(Long postId) {
+        FacebookComment facebookComment = facebookCommentRepository.findById(postId)
+                .orElseThrow(() -> new AppException("Không tìm thấy quyền với id: " + postId, HttpStatus.NOT_FOUND));
+        return FacebookCommentDto.builder()
+                .id(facebookComment.getId())
+                .commenterName(facebookComment.getCommenterName())
+                .commentText(facebookComment.getCommentText())
+                .positive(facebookComment.getPositive())
+                .negative(facebookComment.getNegative())
+                .neutral(facebookComment.getNeutral())
+                .build();
+    }
+
     private void loadAllComments(WebDriver driver) {
         try {
             JavascriptExecutor js = (JavascriptExecutor) driver;

@@ -41,4 +41,16 @@ public class FacebookComment {
     @Column(name = "created_at")
     private Instant createdAt;
 
+    @ColumnDefault("0")
+    @Column(name = "positive")
+    private Boolean positive;
+
+    @ColumnDefault("0")
+    @Column(name = "neutral")
+    private Boolean neutral;
+
+    @ColumnDefault("0")
+    @Column(name = "negative")
+    private Boolean negative;
+
 }

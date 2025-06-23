@@ -30,4 +30,8 @@ public class Constants {
     public static final String USER = "is_user";
     public static final String ADMIN = "is_admin";
   }
+  public static class APIKeyIntegrated {
+    public static final String GEMINI = "api_key_gemini";
+    public static final String OPENAI = "api_key_openai";
+  }
 }
