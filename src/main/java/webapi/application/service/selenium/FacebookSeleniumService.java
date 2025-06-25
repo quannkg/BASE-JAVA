@@ -3,6 +3,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.AllArgsConstructor;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -32,24 +33,26 @@ public class FacebookSeleniumService implements IFacebookCrawler {
     private final FacebookCommentRepository facebookCommentRepository;
     private final GeminiSentimentAnalyzerService geminiSentimentAnalyzerService;
 
+    @Autowired
+    private FacebookSessionManager facebookSessionManager;
+
     public void crawlPostContent(String postUrl) {
-        WebDriverManager.chromedriver().setup();
-        WebDriver driver = new ChromeDriver();
+        WebDriver driver = facebookSessionManager.getLoggedInDriver();
 
         try {
+            FacebookSessionManager.ensureLogin(driver);
             driver.get(postUrl);
-            Thread.sleep(8000); // Có thể thay bằng WebDriverWait nếu muốn
+            Thread.sleep(8000);
 
             FacebookPost post = new FacebookPost();
             post.setPostUrl(postUrl);
             Thread.sleep(8000);
-            loadAllComments(driver);
+            FacebookUtils.loadAllComments(driver,post);
             // ===== 1. Nội dung bài viết =====
             try {
                 WebElement postContent = driver.findElement(By.xpath("//div[@data-ad-preview='message']"));
                 post.setContent(postContent.getText());
-                System.out.println("✅ Nội dung bài viết:");
-                System.out.println(post.getContent());
+                System.out.println("✅ Nội dung bài viết:\n" + post.getContent());
             } catch (Exception e) {
                 System.out.println("⚠️ Không tìm thấy nội dung bài viết");
             }
@@ -88,10 +91,7 @@ public class FacebookSeleniumService implements IFacebookCrawler {
                         FacebookComment comment = new FacebookComment();
                         comment.setCommenterName(commenterName);
                         comment.setCommentText(commentText);
-                        geminiSentimentAnalyzerService.analyzeCommentFacebookSentiment(comment);
-                        post.addComment(comment); // dùng method trong entity Post
-
-                        seenComments.add(commentText); // loại trùng
+                        post.addComment(comment);
                         System.out.println("💬 Bình luận hợp lệ: " + commentText + " 👤 " + commenterName);
                     }
                 }
@@ -99,14 +99,16 @@ public class FacebookSeleniumService implements IFacebookCrawler {
                 System.out.println("⚠️ Không lấy được danh sách bình luận: " + e.getMessage());
             }
 
-            // ===== 4. Lưu tất cả (Post + Comments) =====
-            facebookPostRepository.save(post); // Cascade sẽ lưu cả comment
+            // ===== 4. Phân tích cảm xúc =====
+            geminiSentimentAnalyzerService.analyzeAllCommentsInBatch(post);
 
+            facebookPostRepository.save(post);
             System.out.println("✅ Đã lưu bài viết và toàn bộ bình luận");
 
         } catch (Exception e) {
             System.out.println("❌ Lỗi khi cào dữ liệu: " + e.getMessage());
         } finally {
+            // Nếu không cần reuse Chrome cho lần sau, thì giữ lại dòng này:
             driver.quit();
         }
     }
@@ -159,65 +161,5 @@ public class FacebookSeleniumService implements IFacebookCrawler {
                 .negative(facebookComment.getNegative())
                 .neutral(facebookComment.getNeutral())
                 .build();
-    }
-
-    private void loadAllComments(WebDriver driver) {
-        try {
-            JavascriptExecutor js = (JavascriptExecutor) driver;
-
-            // ✅ Tìm vùng bình luận có scroll riêng
-            WebElement scrollContainer = driver.findElement(By.cssSelector(
-                    "div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m"
-            ));
-
-            int lastCount = 0;
-            int stagnantScrolls = 0;
-            int maxScrolls = 50;
-
-            for (int i = 0; i < maxScrolls; i++) {
-                boolean clickedAny = false;
-
-                // 🔁 Click các nút "Xem thêm bình luận/phản hồi"
-                List<WebElement> moreButtons = driver.findElements(By.xpath(
-                        "//div[text()='Xem thêm bình luận' or text()='Xem thêm phản hồi']"
-                ));
-
-                for (WebElement btn : moreButtons) {
-                    try {
-                        js.executeScript("arguments[0].scrollIntoView({behavior: 'auto', block: 'center'});", btn);
-                        Thread.sleep(300);
-                        btn.click();
-                        Thread.sleep(1000);
-                        clickedAny = true;
-                    } catch (Exception e) {
-                        // Có thể log ra nếu cần debug
-                    }
-                }
-
-                // 🔄 Scroll nhẹ bên trong vùng comment
-                js.executeScript("arguments[0].scrollBy(0, 1200);", scrollContainer);
-                Thread.sleep(1000);
-
-                // 📊 Đếm số comment hiện tại
-                List<WebElement> currentComments = driver.findElements(By.cssSelector("div.x1vvkbs"));
-                int currentCount = currentComments.size();
-                System.out.println("🌀 Đang thấy " + currentCount + " comment element");
-
-                if (currentCount == lastCount) {
-                    stagnantScrolls++;
-                } else {
-                    stagnantScrolls = 0;
-                    lastCount = currentCount;
-                }
-
-                // ❌ Dừng khi không còn gì mới hoặc không còn nút
-                if (!clickedAny && stagnantScrolls >= 5) {
-                    System.out.println("✅ Đã mở hết bình luận và phản hồi");
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("⚠️ Lỗi khi load bình luận: " + e.getMessage());
-        }
     }
 }
