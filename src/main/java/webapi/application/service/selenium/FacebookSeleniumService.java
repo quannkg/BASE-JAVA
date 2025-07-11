@@ -88,7 +88,6 @@ public class FacebookSeleniumService implements IFacebookCrawler {
                         FacebookComment comment = new FacebookComment();
                         comment.setCommenterName(commenterName);
                         comment.setCommentText(commentText);
-                        geminiSentimentAnalyzerService.analyzeCommentFacebookSentiment(comment);
                         post.addComment(comment); // dùng method trong entity Post
 
                         seenComments.add(commentText); // loại trùng
@@ -99,6 +98,7 @@ public class FacebookSeleniumService implements IFacebookCrawler {
                 System.out.println("⚠️ Không lấy được danh sách bình luận: " + e.getMessage());
             }
 
+            geminiSentimentAnalyzerService.analyzeAllCommentsInBatch(post);
             // ===== 4. Lưu tất cả (Post + Comments) =====
             facebookPostRepository.save(post); // Cascade sẽ lưu cả comment
 

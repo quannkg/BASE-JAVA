@@ -141,6 +141,11 @@ public class UserService implements IUserService {
         }
     }
 
+    @Override
+    public AuthUserprofileDto getCurrentUserProfile() {
+        return getUserProfileById(UserUtils.getUserId());
+    }
+
     private void enrichUserProfile(AuthUserprofileDto userprofileDto) {
         Optional<AuthUserprofile> userprofileEntity = authUserprofileRepository.findFirstByUserId(Long.valueOf(userprofileDto.getId()));
         if (userprofileEntity.isEmpty()) {

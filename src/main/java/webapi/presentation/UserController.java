@@ -27,4 +27,8 @@ public class UserController {
         iUser.updateUserProfile(id, userProfileDto);
         return ResponseFactory.success("Cập nhật thông tin người dùng thành công");
     }
+    @GetMapping("me")
+    public ResponseEntity<BaseResponse<AuthUserprofileDto>> updateUserProfile() {
+        return ResponseFactory.success(iUser.getCurrentUserProfile());
+    }
 }

@@ -11,4 +11,5 @@ public interface IUserService {
     String registerUser(RegisterRequest request) throws NoSuchAlgorithmException, InvalidKeySpecException;
     AuthUserprofileDto getUserProfileById(Integer id);
     void updateUserProfile(Integer id, UpdateProfileRequest userProfileDto);
+    AuthUserprofileDto getCurrentUserProfile();
 }
